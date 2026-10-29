@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:zedu/core/core.dart';
 import 'package:zedu/features/features.dart';
@@ -8,6 +9,12 @@ class AuthNotifier extends Notifier<AuthState> {
   late AuthInterceptor _interceptor;
 
   static const _tag = 'AuthNotifier';
+
+  /// How long to wait for Google's redirect to reach the loopback server.
+  /// Without a bound the wait never ends, so a user who closes the browser
+  /// tab is left with the sign-in button stuck loading until the app is
+  /// restarted.
+  static const _googleRedirectTimeout = Duration(minutes: 2);
 
   @override
   AuthState build() {
@@ -275,7 +282,7 @@ class AuthNotifier extends Notifier<AuthState> {
 
       // 3. Wait for Google's redirect containing the authorization code
       String? grantCode;
-      await for (final request in server) {
+      await for (final request in server.timeout(_googleRedirectTimeout)) {
         grantCode = request.uri.queryParameters['code'];
 
         // Return a clean success page to the user in their browser
@@ -342,6 +349,15 @@ class AuthNotifier extends Notifier<AuthState> {
             error: result.error.friendlyMessage,
           );
       }
+    } on TimeoutException {
+      AppLogger.w(
+        'Google Sign-In timed out waiting for the redirect',
+        tag: _tag,
+      );
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Google Sign-In timed out. Please try again.',
+      );
     } catch (e) {
       AppLogger.e('Google Sign-In failed', tag: _tag, error: e);
       state = state.copyWith(isLoading: false, error: 'Google Sign-In failed');
