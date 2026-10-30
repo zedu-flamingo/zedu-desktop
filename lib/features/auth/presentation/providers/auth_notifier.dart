@@ -10,12 +10,6 @@ class AuthNotifier extends Notifier<AuthState> {
 
   static const _tag = 'AuthNotifier';
 
-  /// How long to wait for Google's redirect to reach the loopback server.
-  /// Without a bound the wait never ends, so a user who closes the browser
-  /// tab is left with the sign-in button stuck loading until the app is
-  /// restarted.
-  static const _googleRedirectTimeout = Duration(minutes: 2);
-
   @override
   AuthState build() {
     _repository = ref.read(authRepositoryProvider);
@@ -258,6 +252,8 @@ class AuthNotifier extends Notifier<AuthState> {
     state = state.copyWith(isLoading: true, clearError: true);
 
     HttpServer? server;
+    // Read before the first await so a disposed notifier cannot read a ref.
+    final redirectTimeout = ref.read(googleRedirectTimeoutProvider);
     try {
       final config = locator<AppConfig>();
       const port = 8000; // Standard redirect port for desktop
@@ -278,11 +274,11 @@ class AuthNotifier extends Notifier<AuthState> {
       });
 
       AppLogger.d('Launching Google Auth URL in browser', tag: _tag);
-      await launchUrl(authUrl, mode: LaunchMode.externalApplication);
+      await ref.read(externalUrlLauncherProvider)(authUrl);
 
       // 3. Wait for Google's redirect containing the authorization code
       String? grantCode;
-      await for (final request in server.timeout(_googleRedirectTimeout)) {
+      await for (final request in server.timeout(redirectTimeout)) {
         grantCode = request.uri.queryParameters['code'];
 
         // Return a clean success page to the user in their browser
