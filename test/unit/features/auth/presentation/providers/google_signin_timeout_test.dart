@@ -29,7 +29,10 @@ void main() {
         AuthInterceptor(storage: storage),
       );
       locator.registerSingleton<AppConfig>(
-        const AppConfig(apiBaseUrl: 'https://example.com/', usesMockData: false),
+        const AppConfig(
+          apiBaseUrl: 'https://example.com/',
+          usesMockData: false,
+        ),
       );
 
       container = ProviderContainer(

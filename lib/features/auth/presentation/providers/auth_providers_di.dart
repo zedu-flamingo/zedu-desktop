@@ -22,7 +22,8 @@ final googleRedirectTimeoutProvider = Provider<Duration>(
 /// Opens a URL in the user's browser. Injected so the Google sign-in flow can
 /// be driven in tests without launching a real browser.
 final externalUrlLauncherProvider = Provider<Future<bool> Function(Uri)>(
-  (ref) => (uri) => launchUrl(uri, mode: LaunchMode.externalApplication),
+  (ref) =>
+      (uri) => launchUrl(uri, mode: LaunchMode.externalApplication),
 );
 
 final authNotifierProvider = NotifierProvider<AuthNotifier, AuthState>(
