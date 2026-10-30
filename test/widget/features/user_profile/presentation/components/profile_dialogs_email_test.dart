@@ -15,7 +15,10 @@ void main() {
     matching: find.byType(TextFormField),
   );
 
-  Future<void> pumpOpener(WidgetTester tester, VoidCallback Function(BuildContext) open) async {
+  Future<void> pumpOpener(
+    WidgetTester tester,
+    VoidCallback Function(BuildContext) open,
+  ) async {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     tester.view.physicalSize = const Size(1280, 900);
@@ -41,15 +44,18 @@ void main() {
     ValueChanged<ProfileAccount> onSave,
   ) => pumpOpener(
     tester,
-    (context) => () => showEditAccountDialog(context, account, onSave),
+    (context) =>
+        () => showEditAccountDialog(context, account, onSave),
   );
 
   Future<void> openInviteDialog(
     WidgetTester tester,
-    Future<void> Function({required String email, required String role}) onInvite,
+    Future<void> Function({required String email, required String role})
+    onInvite,
   ) => pumpOpener(
     tester,
-    (context) => () => showInviteMemberDialog(context, onInvite),
+    (context) =>
+        () => showInviteMemberDialog(context, onInvite),
   );
 
   group('Edit account dialog email validation', () {
@@ -77,7 +83,9 @@ void main() {
       expect(saved, isNull);
     });
 
-    testWidgets('accepts a valid email with surrounding spaces', (tester) async {
+    testWidgets('accepts a valid email with surrounding spaces', (
+      tester,
+    ) async {
       ProfileAccount? saved;
       await openAccountDialog(tester, (a) => saved = a);
 
